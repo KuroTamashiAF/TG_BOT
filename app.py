@@ -10,6 +10,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 from handlers.user_private import user_private_router
+from handlers.user_group import user_group_router
 from common.bot_cmd_list import private
 
 
@@ -21,6 +22,7 @@ dp = Dispatcher()
 dp.include_routers(
     user_private_router,
 )
+dp.include_router(user_group_router)
 
 
 async def main():
