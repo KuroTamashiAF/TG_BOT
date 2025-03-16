@@ -1,9 +1,11 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 import aiofiles
+from filters.chat_types import ChatTypeFilter
 
 
 user_private_router = Router()
+user_private_router.message.filter(ChatTypeFilter(["private"]))
 
 
 @user_private_router.message(CommandStart())
@@ -17,7 +19,7 @@ async def start_cmd(message: types.Message):
 @user_private_router.message(Command("catalog"))
 async def menu_cmd(message: types.Message):
     await message.answer("Каталог")
-
+    
 
 @user_private_router.message(F.text.lower() == "о нас")
 @user_private_router.message(Command("about"))
