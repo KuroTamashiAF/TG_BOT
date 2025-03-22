@@ -1,15 +1,12 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 import aiofiles
-from aiogram.enums import ParseMode
 from filters.chat_types import ChatTypeFilter
 from keyboards.reply_keyboard import (
     start_kb,
-    start_kb_2,
-    start_kb_3,
     secondary_function_kb,
 )
-from aiogram.utils.formatting import as_list, Bold, as_marked_section
+from aiogram.utils.formatting import Bold, as_marked_section
 
 
 user_private_router = Router()
@@ -57,10 +54,7 @@ async def payment_cmd(message: types.Message):
 @user_private_router.message(Command("shiping"))
 async def shiping_cmd(message: types.Message):
     context = as_marked_section(
-        Bold("Варианты доставки:"), 
-        "Курьером 🏎️", 
-        "Самовывоз 🦵➡️🍗", 
-        marker="✔️"
+        Bold("Варианты доставки:"), "Курьером 🏎️", "Самовывоз 🦵➡️🍗", marker="✔️"
     )
 
     await message.answer(context.as_html())
@@ -83,7 +77,7 @@ async def get_contact(message: types.Message):
 
 
 @user_private_router.message(F.location)
-async def get_contact(message: types.Message):
+async def get_location(message: types.Message):
     await message.answer("Локация получена")
     await message.answer(str(message.location))
 
