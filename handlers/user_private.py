@@ -1,8 +1,15 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 import aiofiles
+from aiogram.enums import ParseMode
 from filters.chat_types import ChatTypeFilter
-from keyboards.reply_keyboard import start_kb, start_kb_2
+from keyboards.reply_keyboard import (
+    start_kb,
+    start_kb_2,
+    start_kb_3,
+    secondary_function_kb,
+)
+from aiogram.utils.formatting import as_list, Bold, as_marked_section
 
 
 user_private_router = Router()
@@ -13,22 +20,20 @@ user_private_router.message.filter(ChatTypeFilter(["private"]))
 async def start_cmd(message: types.Message):
     await message.answer(
         "Здравствуйте это виртуальный помощник. \n " "Я помогу вам сделать заказ =)",
-        reply_markup=start_kb_2.as_markup(
-            resize_keyboard=True, input_field_placeholder="Что вы хотели ?"
-        ),
+        reply_markup=start_kb,
     )
 
 
 @user_private_router.message(F.text.lower() == "каталог")
 @user_private_router.message(Command("catalog"))
 async def menu_cmd(message: types.Message):
-    await message.answer("Каталог")
+    await message.answer("Каталог:")
 
 
 @user_private_router.message(F.text.lower() == "о нас")
 @user_private_router.message(Command("about"))
 async def about_cmd(message: types.Message):
-    await message.answer("Выводится информация о боте")
+    await message.answer("<i>Выводится информация о боте</i>")
 
 
 @user_private_router.message(
@@ -36,7 +41,14 @@ async def about_cmd(message: types.Message):
 )
 @user_private_router.message(Command("payment"))
 async def payment_cmd(message: types.Message):
-    await message.answer("Варианты оплаты:")
+    text = as_marked_section(
+        Bold("Варианты оплаты"),
+        "Картой при получении",
+        "Переводом на карту",
+        marker="✅ ",
+    )
+
+    await message.answer(text.as_html())
 
 
 @user_private_router.message(
@@ -44,7 +56,14 @@ async def payment_cmd(message: types.Message):
 )
 @user_private_router.message(Command("shiping"))
 async def shiping_cmd(message: types.Message):
-    await message.answer("Варианты доставки:")
+    context = as_marked_section(
+        Bold("Варианты доставки:"), 
+        "Курьером 🏎️", 
+        "Самовывоз 🦵➡️🍗", 
+        marker="✔️"
+    )
+
+    await message.answer(context.as_html())
 
 
 @user_private_router.message(F.text.lower().contains("звон"))
@@ -57,6 +76,23 @@ async def feedback_cmd(message: types.Message):
         await message.answer("Обратный звонок зарегистрировал")
 
 
-# @user_private_router.message(F.text)
-# async def final_check_text_fron_user(message: types.Message):
-#     await message.answer("Я вас не понял повторите")
+@user_private_router.message(F.contact)
+async def get_contact(message: types.Message):
+    await message.answer("номер получен ☎️")
+    await message.answer(str(message.contact))
+
+
+@user_private_router.message(F.location)
+async def get_contact(message: types.Message):
+    await message.answer("Локация получена")
+    await message.answer(str(message.location))
+
+
+@user_private_router.message(F.text == "Доп. функции")
+async def secondary_function(message: types.Message):
+    await message.answer("Дополнительные фукции:", reply_markup=secondary_function_kb)
+
+
+@user_private_router.message(F.text == "На главную")
+async def return_main_menu(message: types.Message):
+    await message.answer("<strong>Главная:</strong>🏠", reply_markup=start_kb)
