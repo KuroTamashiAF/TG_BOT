@@ -17,7 +17,7 @@ async def admin_features(message: types.Message):
     await message.answer("Что хотите сделать?", reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "Я так, просто посмотреть зашел")
+@admin_router.message(F.text == "Просто зашел посмотреть")
 async def starring_at_product(message: types.Message):
     await message.answer("ОК, вот список товаров")
 

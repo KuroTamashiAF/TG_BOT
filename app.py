@@ -3,6 +3,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import BotCommandScopeAllPrivateChats
 from aiogram.client.default import DefaultBotProperties
+from aiogram.fsm.strategy import FSMStrategy
 
 import asyncio
 import os
