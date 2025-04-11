@@ -59,10 +59,8 @@ secondary_function_kb = ReplyKeyboardMarkup(
 
 ADMIN_KB = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Добавить товар")],
-        [KeyboardButton(text="Изменить товар")],
-        [KeyboardButton(text="Удалить товар")],
-        [KeyboardButton(text="Просто зашел посмотреть")],
+        [KeyboardButton(text="Добавить товар"), KeyboardButton(text="Ассортимент")],
+        [KeyboardButton(text="Главная")],
     ],
     resize_keyboard=True,
     input_field_placeholder="Выберите действие",

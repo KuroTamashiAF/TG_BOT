@@ -1,15 +1,19 @@
+from tkinter import N
 from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
+from database.orm_qerry import orm_add_product, orm_all_products
 from filters.chat_types import ChatTypeFilter, IsAdmin
-from keyboards.reply_keyboard import ADMIN_KB
+from keyboards.reply_keyboard import ADMIN_KB, start_kb
+
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
-
 
 
 @admin_router.message(Command("admin"))
@@ -17,19 +21,25 @@ async def admin_features(message: types.Message):
     await message.answer("Что хотите сделать?", reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "Просто зашел посмотреть")
-async def starring_at_product(message: types.Message):
+@admin_router.message(F.text == "Ассортимент")
+async def starring_at_product(message: types.Message, session:AsyncSession):
+    for product in await orm_all_products(session):
+        await message.answer_photo(
+            product.image,
+            caption=f"<strong>{product.name}\
+            </strong> \n {product.description} \n Стоимость:{round(product.price,2)}"
+        )
+
     await message.answer("ОК, вот список товаров")
 
-
-@admin_router.message(F.text == "Изменить товар")
-async def change_product(message: types.Message):
-    await message.answer("ОК, вот список товаров")
+@admin_router.message()
 
 
-@admin_router.message(F.text == "Удалить товар")
-async def delete_product(message: types.Message):
-    await message.answer("Выберите товар(ы) для удаления")
+
+
+@admin_router.message(F.text == "Главная")
+async def on_main(message: types.Message):
+    await message.answer("Главная",reply_markup=start_kb)
 
 
 # Код ниже для машины состояний (FSM)
@@ -78,11 +88,11 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
 @admin_router.message(StateFilter("*"), F.text.casefold() == "назад")
 async def back_step_handler(message: types.Message, state: FSMContext) -> None:
 
-    current_state = await state.get_state()
+    current_state = await state.get_state() 
 
     if current_state == AddProduct.name:
         await message.answer(
-            'Предидущего шага нет, или введите название товара или напишите "отмена"'
+            'Предыдущего шага нет, или введите название товара или напишите "отмена"'
         )
         return
 
@@ -103,9 +113,9 @@ async def add_name(message: types.Message, state: FSMContext):
     # Здесь можно сделать какую либо дополнительную проверку
     # и выйти из хендлера не меняя состояние с отправкой соответствующего сообщения
     # например:
-    if len(message.text) >= 100:
+    if len(message.text) >= 100 or len(message.text) < 3:
         await message.answer(
-            "Название товара не должно превышать 100 символов. \n Введите заново"
+            "Название товара не должно превышать 100 символов. И должно быть не меньше 3 символов\n Введите заново"
         )
         return
 
@@ -156,14 +166,20 @@ async def add_price2(message: types.Message, state: FSMContext):
 
 # Ловим данные для состояние image и потом выходим из состояний
 @admin_router.message(AddProduct.image, F.photo)
-async def add_image(message: types.Message, state: FSMContext):
+async def add_image(message: types.Message, state: FSMContext, session: AsyncSession):
+
     await state.update_data(image=message.photo[-1].file_id)
     await message.answer("Товар добавлен", reply_markup=ADMIN_KB)
     data = await state.get_data()
-    await message.answer(str(data))
+
+    try:
+        await orm_add_product(data, session)
+
+    except Exception as e:
+        await message.answer(f"Ошибка: {str(e)}\n Обратитесь в службу поддержки", reply_markup=ADMIN_KB)
     await state.clear()
 
 
 @admin_router.message(AddProduct.image)
 async def add_image2(message: types.Message, state: FSMContext):
-    await message.answer("Отправьте фото пищи")
+    await message.answer("Отправьте фото")

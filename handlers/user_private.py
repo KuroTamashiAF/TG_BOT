@@ -7,6 +7,9 @@ from keyboards.reply_keyboard import (
     secondary_function_kb,
 )
 from aiogram.utils.formatting import Bold, as_marked_section
+from database.orm_qerry import orm_all_products
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 
 user_private_router = Router()
@@ -23,8 +26,15 @@ async def start_cmd(message: types.Message):
 
 @user_private_router.message(F.text.lower() == "каталог")
 @user_private_router.message(Command("catalog"))
-async def menu_cmd(message: types.Message):
-    await message.answer("Каталог:")
+async def menu_cmd(message: types.Message, session:AsyncSession):
+    for product in await orm_all_products(session):
+        await message.answer_photo(
+            product.image,
+            caption=f"<strong>{product.name}\
+            </strong> \n {product.description} \n Стоимость:{round(product.price,2)}руб за мл"
+        )
+    await message.answer("Каталог⬆️")
+
 
 
 @user_private_router.message(F.text.lower() == "о нас")

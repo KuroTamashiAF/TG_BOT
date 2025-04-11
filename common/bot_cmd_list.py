@@ -7,4 +7,5 @@ private =[
     BotCommand(command="payment",  description="Варианты оплаты"),
     BotCommand(command="shiping",  description="Варианты доставки"),
     BotCommand(command="feedback",  description="Запрос обратного звонка"),
+
 ]
