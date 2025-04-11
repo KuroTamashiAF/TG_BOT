@@ -4,9 +4,10 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from database.orm_qerry import orm_add_product, orm_all_products
+from database.orm_qerry import orm_add_product, orm_all_products, orm_delete_product
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from keyboards.reply_keyboard import ADMIN_KB, start_kb
+from keyboards.inline_keyboard import get_call_back_btns
 
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,12 +28,24 @@ async def starring_at_product(message: types.Message, session:AsyncSession):
         await message.answer_photo(
             product.image,
             caption=f"<strong>{product.name}\
-            </strong> \n {product.description} \n Стоимость:{round(product.price,2)}"
+            </strong> \n {product.description} \n Стоимость:{round(product.price,2)} руб за мл",
+            reply_markup=get_call_back_btns(
+                btns={
+                    "Удалить": f"delete_{product.id}",
+                    "Изменить": f"change_{product.id}"
+                }
+            )
         )
 
     await message.answer("ОК, вот список товаров")
 
-@admin_router.message()
+
+@admin_router.callback_query(F.data.startswith("delete_"))
+async def delete_product(callback: types.CallbackQuery, session:AsyncSession):
+    product_id = callback.data.split("_")[-1]
+    await orm_delete_product(session, int(product_id))
+    await callback.answer("Товар удален!")
+    await callback.message.answer("Товар удален")
 
 
 

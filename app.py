@@ -21,7 +21,7 @@ from handlers.user_group import user_group_router
 from common.bot_cmd_list import private
 
 
-ALOWED_UPDATES = ["message", "edited_message"]
+# ALOWED_UPDATES = ["message", "edited_message"]
 
 bot = Bot(
     token=os.getenv("TG_TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -55,7 +55,7 @@ async def main():
     dp.update.middleware(DataBaseSession(session_pool=session_marker))
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands(commands=private, scope=BotCommandScopeAllPrivateChats())
-    await dp.start_polling(bot, allowed_updates=ALOWED_UPDATES)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
 if __name__ == "__main__":
