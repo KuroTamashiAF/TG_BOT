@@ -1,3 +1,4 @@
+from os import name
 from tkinter import N
 from aiogram import F, Router, types
 from aiogram.filters import Command, StateFilter, or_f
@@ -141,16 +142,19 @@ async def back_step_handler(message: types.Message, state: FSMContext) -> None:
 # Ловим данные для состояние name и потом меняем состояние на description
 @admin_router.message(AddProduct.name, or_f(F.text, F.text == "."))
 async def add_name(message: types.Message, state: FSMContext):
-    # Здесь можно сделать какую либо дополнительную проверку
-    # и выйти из хендлера не меняя состояние с отправкой соответствующего сообщения
-    # например:
-    if len(message.text) >= 100 or len(message.text) < 3:
-        await message.answer(
-            "Название товара не должно превышать 100 символов. И должно быть не меньше 3 символов\n Введите заново"
-        )
-        return
+    if message.text == ".":
+        await state.update_data(name=AddProduct.product_for_change.name)
+    else:
+        # Здесь можно сделать какую либо дополнительную проверку
+        # и выйти из хендлера не меняя состояние с отправкой соответствующего сообщения
+        # например:
+        if len(message.text) >= 100 or len(message.text) < 3:
+            await message.answer(
+                "Название товара не должно превышать 100 символов. И должно быть не меньше 3 символов\n Введите заново"
+            )
+            return
 
-    await state.update_data(name=message.text)
+        await state.update_data(name=message.text)
     await message.answer("Введите описание товара")
     await state.set_state(AddProduct.description)
 
@@ -162,9 +166,12 @@ async def add_name2(message: types.Message, state: FSMContext):
 
 
 # Ловим данные для состояние description и потом меняем состояние на price
-@admin_router.message(AddProduct.description, F.text)
+@admin_router.message(AddProduct.description, or_f(F.text, F.text == "."))
 async def add_description(message: types.Message, state: FSMContext):
-    await state.update_data(description=message.text)
+    if message.text == ".":
+        await state.update_data(name=AddProduct.product_for_change.name)
+    else:
+        await state.update_data(description=message.text)
     await message.answer("Введите стоимость товара")
     await state.set_state(AddProduct.price)
 
